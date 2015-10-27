@@ -1,6 +1,6 @@
 BIN = interpreter \
       compiler-x86 compiler-x64 compiler-arm \
-      jit-x64 jit-arm
+      jit-x86 jit-x64 jit-arm
 
 CROSS_COMPILE = arm-linux-gnueabihf-
 QEMU_ARM = qemu-arm -L /usr/arm-linux-gnueabihf
@@ -39,6 +39,15 @@ run-compiler: compiler-x86 compiler-x64 compiler-arm
 jit0-x64: tests/jit0-x64.c
 	$(CC) $(CFLAGS) -o $@ $^
 
+jit-x86: dynasm-driver.c jit-x86.h
+	$(CC) $(CFLAGS) -o $@ -DJIT=\"jit-x86.h\" \
+		dynasm-driver.c -m32
+jit-x86.h: jit-x86.dasc
+	        $(LUA) dynasm/dynasm.lua -o $@ jit-x86.dasc
+run-jit-x86: jit-x86
+	./jit-x86 progs/hello.b && objdump -D -b binary \
+		-mi386 -Mx86 /tmp/jitcode
+
 jit-x64: dynasm-driver.c jit-x64.h
 	$(CC) $(CFLAGS) -o $@ -DJIT=\"jit-x64.h\" \
 		dynasm-driver.c
@@ -60,6 +69,12 @@ run-jit-arm: jit-arm
 	$(QEMU_ARM) jit-arm progs/hello.b && \
 	$(CROSS_COMPILE)objdump -D -b binary -marm /tmp/jitcode
 
+bench-jit-x86: jit-x86
+	@echo
+	@echo Executing Brainf*ck benchmark suite. Be patient.
+	@echo
+	@env PATH='.:${PATH}' BF_RUN='$<' tests/bench.py
+
 bench-jit-x64: jit-x64
 	@echo
 	@echo Executing Brainf*ck benchmark suite. Be patient.
@@ -78,4 +93,4 @@ clean:
 	$(RM) $(BIN) \
 	      hello-x86 hello-x64 hello-arm hello.s \
 	      test_stack jit0-x64 jit0-arm \
-	      jit-x64.h jit-arm.h
+	      jit-x86.h jit-x64.h jit-arm.h

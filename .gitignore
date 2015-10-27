@@ -1,10 +1,13 @@
 *.o
+*.exe
 test_stack
 test_vector
 compiler-arm
 compiler-x64
 compiler-x86
 interpreter
+jit-x86
+jit-x86.h
 jit-x64
 jit-x64.h
 jit-arm
