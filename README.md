@@ -33,8 +33,10 @@ make run-compiler
 
 ###The JIT
 ```
+make run-jit-x86
 make run-jit-x64
 make run-jit-arm
+make bench-jit-x86
 make bench-jit-x64
 ```
 
